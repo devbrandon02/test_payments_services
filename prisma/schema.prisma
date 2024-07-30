@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  name        String?
+  description String?
+  stock       Int?
+  image       String?
+  price       Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map(name: "product")
+}
+
+model Transaction {
+  id                String              @id @default(cuid())
+  productId         String
+  quantity          Int
+  status            Status              @default(PENDING)
+  total             Float
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  DetailTransaction DetailTransaction[]
+
+  @@map(name: "transaction")
+}
+
+model Customer {
+  id                String              @id @default(cuid())
+  name              String?
+  email             String?
+  phone             String?
+  address           String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  DetailTransaction DetailTransaction[]
+
+  @@map(name: "customer")
+}
+
+model DetailTransaction {
+  id            String      @id @default(cuid())
+  transactionId String
+  customerId    String
+  productId     String
+  Cliente       Customer    @relation(fields: [customerId], references: [id])
+  Transaccion   Transaction @relation(fields: [transactionId], references: [id])
+
+  @@map(name: "detail_transaction")
+}
+
+enum Status {
+  PENDING
+  COMPLETED
+  FAILED
+}

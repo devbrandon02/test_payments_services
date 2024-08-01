@@ -8,14 +8,16 @@ datasource db {
 }
 
 model Product {
-  id          String   @id @default(cuid())
-  name        String?
-  description String?
-  stock       Int?
-  image       String?
-  price       Float?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String              @id @default(cuid())
+  name              String?
+  description       String?
+  stock             Int?
+  image             String?
+  price             Float?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  Transaction       Transaction[]
+  TransactionDetail TransactionDetail[]
 
   @@map(name: "product")
 }
@@ -25,40 +27,47 @@ model Transaction {
   productId         String
   quantity          Int
   status            Status              @default(PENDING)
+  baseFee           Float
+  deliveryFee       Float
   total             Float
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
-  DetailTransaction DetailTransaction[]
+  Product           Product             @relation(fields: [productId], references: [id])
+  TransactionDetail TransactionDetail[]
+  Customer          Customer?           @relation(fields: [customerId], references: [id])
+  customerId        String?
 
   @@map(name: "transaction")
 }
 
 model Customer {
-  id                String              @id @default(cuid())
-  name              String?
-  email             String?
-  phone             String?
-  address           String?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  DetailTransaction DetailTransaction[]
+  id                    String        @id @default(cuid())
+  name                  String?
+  email                 String?       @unique
+  phone                 String?
+  number_identification String?
+  address               String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  Transaction           Transaction[]
 
   @@map(name: "customer")
 }
 
-model DetailTransaction {
+model TransactionDetail {
   id            String      @id @default(cuid())
-  transactionId String
-  customerId    String
+  quantity      Int
+  unitPrice     Float
   productId     String
-  Cliente       Customer    @relation(fields: [customerId], references: [id])
-  Transaccion   Transaction @relation(fields: [transactionId], references: [id])
-
-  @@map(name: "detail_transaction")
+  transactionId String
+  product       Product     @relation(fields: [productId], references: [id])
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
 }
 
 enum Status {
+  DECLINED
   PENDING
-  COMPLETED
-  FAILED
+  APPROVED
+  ERROR
+  VOIDED
 }
